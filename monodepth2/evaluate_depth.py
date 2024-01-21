@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 import os
 import cv2
 import numpy as np
+import pandas as pd
 
 import torch
 from torch.utils.data import DataLoader
@@ -58,12 +59,22 @@ def batch_post_process_disparity(l_disp, r_disp):
 
 def evaluate(opt):
     """Evaluates a pretrained model using a specified test set
-    """
-    MIN_DEPTH = 1e-3
-    MAX_DEPTH = 80
+    """    
+    output_path = os.path.join(opt.eval_out_dir, opt.model_name)
+    os.makedirs(output_path)
+
+    if opt.save_pred_images:
+        save_images_dir = os.path.join(opt.eval_out_dir, opt.model_name, 'depth_images')
+        os.makedirs(save_images_dir)
 
     assert sum((opt.eval_mono, opt.eval_stereo)) == 1, \
         "Please choose mono or stereo evaluation by setting either --eval_mono or --eval_stereo"
+
+    if torch.cuda.is_available() and not opt.no_cuda:
+        torch.backends.cudnn.benchmark = True
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
 
     if opt.ext_disp_to_eval is None:
 
@@ -78,24 +89,47 @@ def evaluate(opt):
         encoder_path = os.path.join(opt.load_weights_folder, "encoder.pth")
         decoder_path = os.path.join(opt.load_weights_folder, "depth.pth")
 
-        encoder_dict = torch.load(encoder_path)
+        encoder_dict = torch.load(encoder_path, map_location=device)
 
-        dataset = datasets.KITTIRAWDataset(opt.data_path, filenames,
-                                           encoder_dict['height'], encoder_dict['width'],
-                                           [0], 4, is_train=False)
-        dataloader = DataLoader(dataset, 16, shuffle=False, num_workers=opt.num_workers,
-                                pin_memory=True, drop_last=False)
+        if opt.eval_split.find('pering') != -1:
+            dataset = datasets.PeringDataset(
+                opt.data_path,
+                filenames,
+                encoder_dict['height'],
+                encoder_dict['width'],
+                [0],
+                4,
+                is_train=False
+            )
+        else:
+            dataset = datasets.KITTIRAWDataset(
+                opt.data_path,
+                filenames,
+                encoder_dict['height'],
+                encoder_dict['width'],
+                [0],
+                4,
+                is_train=False
+            )
+        dataloader = DataLoader(
+            dataset,
+            batch_size=opt.batch_size,
+            shuffle=False,
+            num_workers=opt.num_workers,
+            pin_memory=True,
+            drop_last=False
+        )
 
         encoder = networks.ResnetEncoder(opt.num_layers, False)
         depth_decoder = networks.DepthDecoder(encoder.num_ch_enc)
 
         model_dict = encoder.state_dict()
         encoder.load_state_dict({k: v for k, v in encoder_dict.items() if k in model_dict})
-        depth_decoder.load_state_dict(torch.load(decoder_path))
+        depth_decoder.load_state_dict(torch.load(decoder_path, map_location=device))
 
-        encoder.cuda()
+        encoder.to(device)
         encoder.eval()
-        depth_decoder.cuda()
+        depth_decoder.to(device)
         depth_decoder.eval()
 
         pred_disps = []
@@ -105,7 +139,7 @@ def evaluate(opt):
 
         with torch.no_grad():
             for data in dataloader:
-                input_color = data[("color", 0, 0)].cuda()
+                input_color = data[("color", 0, 0)].to(device)
 
                 if opt.post_process:
                     # Post-processed results require each image to have two forward passes
@@ -136,10 +170,28 @@ def evaluate(opt):
             pred_disps = pred_disps[eigen_to_benchmark_ids]
 
     if opt.save_pred_disps:
-        output_path = os.path.join(
-            opt.load_weights_folder, "disps_{}_split.npy".format(opt.eval_split))
-        print("-> Saving predicted disparities to ", output_path)
-        np.save(output_path, pred_disps)
+        pred_output_path = os.path.join(
+            opt.eval_out_dir,
+            opt.model_name,
+            "disps_MODEL_{}_SPLIT_{}.npy".format(opt.model_name, opt.eval_split)
+        )
+        print("-> Saving predicted disparities to ", pred_output_path)
+        np.save(pred_output_path, pred_disps)
+
+    #Save estimated depths as images.
+    if opt.save_pred_images:
+        for idx in range(len(pred_disps)):
+            disp_resized = cv2.resize(pred_disps[idx], dataset.full_res_shape)
+            depth = 1 / disp_resized
+            # Normalize depth value to local save.
+            depth = depth - opt.min_depth
+            depth = depth / (opt.max_depth - opt.min_depth)
+            depth = np.uint16(depth * (2**16 - 1))
+            save_path = os.path.join(
+                save_images_dir,
+                "{:010d}.png".format(int(filenames[idx].split()[1]))
+            )
+            cv2.imwrite(save_path, depth)
 
     if opt.no_eval:
         print("-> Evaluation disabled. Done.")
@@ -154,7 +206,7 @@ def evaluate(opt):
         for idx in range(len(pred_disps)):
             disp_resized = cv2.resize(pred_disps[idx], (1216, 352))
             depth = STEREO_SCALE_FACTOR / disp_resized
-            depth = np.clip(depth, 0, 80)
+            depth = np.clip(depth, opt.min_depth, opt.max_depth)
             depth = np.uint16(depth * 256)
             save_path = os.path.join(save_dir, "{:010d}.png".format(idx))
             cv2.imwrite(save_path, depth)
@@ -188,7 +240,7 @@ def evaluate(opt):
         pred_depth = 1 / pred_disp
 
         if opt.eval_split == "eigen":
-            mask = np.logical_and(gt_depth > MIN_DEPTH, gt_depth < MAX_DEPTH)
+            mask = np.logical_and(gt_depth > opt.min_depth, gt_depth < opt.max_depth)
 
             crop = np.array([0.40810811 * gt_height, 0.99189189 * gt_height,
                              0.03594771 * gt_width,  0.96405229 * gt_width]).astype(np.int32)
@@ -197,6 +249,7 @@ def evaluate(opt):
             mask = np.logical_and(mask, crop_mask)
 
         else:
+            # Common evaluation.
             mask = gt_depth > 0
 
         pred_depth = pred_depth[mask]
@@ -208,8 +261,8 @@ def evaluate(opt):
             ratios.append(ratio)
             pred_depth *= ratio
 
-        pred_depth[pred_depth < MIN_DEPTH] = MIN_DEPTH
-        pred_depth[pred_depth > MAX_DEPTH] = MAX_DEPTH
+        pred_depth[pred_depth < opt.min_depth] = opt.min_depth
+        pred_depth[pred_depth > opt.max_depth] = opt.max_depth
 
         errors.append(compute_errors(gt_depth, pred_depth))
 
@@ -222,6 +275,20 @@ def evaluate(opt):
 
     print("\n  " + ("{:>8} | " * 7).format("abs_rel", "sq_rel", "rmse", "rmse_log", "a1", "a2", "a3"))
     print(("&{: 8.3f}  " * 7).format(*mean_errors.tolist()) + "\\\\")
+
+    # Log values as csv.
+    errors_df = pd.DataFrame(
+        data=[mean_errors.tolist()],
+        columns=["abs_rel", "sq_rel", "rmse", "rmse_log", "a1", "a2", "a3"]
+    )
+    errors_df.to_csv(
+        os.path.join(
+            output_path,
+            "results_MODEL_{}_SPLIT_{}.csv".format(opt.model_name, opt.eval_split)
+        ),
+        index=False
+    )
+
     print("\n-> Done!")
 
 

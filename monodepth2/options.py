@@ -34,7 +34,6 @@ class MonodepthOptions:
         self.parser.add_argument("--split",
                                  type=str,
                                  help="which training split to use",
-                                 choices=["eigen_zhou", "eigen_full", "odom", "benchmark"],
                                  default="eigen_zhou")
         self.parser.add_argument("--num_layers",
                                  type=int,
@@ -87,7 +86,7 @@ class MonodepthOptions:
         self.parser.add_argument("--batch_size",
                                  type=int,
                                  help="batch size",
-                                 default=12)
+                                 default=1)
         self.parser.add_argument("--learning_rate",
                                  type=float,
                                  help="learning rate",
@@ -140,7 +139,7 @@ class MonodepthOptions:
         self.parser.add_argument("--num_workers",
                                  type=int,
                                  help="number of dataloader workers",
-                                 default=12)
+                                 default=0)
 
         # LOADING options
         self.parser.add_argument("--load_weights_folder",
@@ -182,8 +181,6 @@ class MonodepthOptions:
         self.parser.add_argument("--eval_split",
                                  type=str,
                                  default="eigen",
-                                 choices=[
-                                    "eigen", "eigen_benchmark", "benchmark", "odom_9", "odom_10"],
                                  help="which split to run eval on")
         self.parser.add_argument("--save_pred_disps",
                                  help="if set saves predicted disparities",
@@ -201,6 +198,9 @@ class MonodepthOptions:
         self.parser.add_argument("--post_process",
                                  help="if set will perform the flipping post processing "
                                       "from the original monodepth paper",
+                                 action="store_true")
+        self.parser.add_argument("--save_pred_images",
+                                 help="if set will save predicted depth images",
                                  action="store_true")
 
     def parse(self):

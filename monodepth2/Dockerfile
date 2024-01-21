@@ -16,3 +16,8 @@ RUN pip3 install tensorboard==2.10.1
 RUN pip3 install opencv-python==3.3.1.11
 RUN pip3 install matplotlib==3.3.4
 RUN pip3 install scikit-image==0.17.2
+
+RUN apt-get update
+RUN apt-get install unzip -y
+
+RUN pip3 install pandas==1.1.5
