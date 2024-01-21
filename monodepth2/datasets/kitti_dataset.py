@@ -26,11 +26,14 @@ class KITTIDataset(MonoDataset):
         # by 1 / image_height. Monodepth2 assumes a principal point to be exactly centered.
         # If your principal point is far from the center you might need to disable the horizontal
         # flip augmentation.
+        
+        # TODO: new matrix.
         self.K = np.array([[0.58, 0, 0.5, 0],
                            [0, 1.92, 0.5, 0],
-                           [0, 0, 1, 0],
-                           [0, 0, 0, 1]], dtype=np.float32)
+                           [0,    0,   1, 0],
+                           [0,    0,   0, 1]], dtype=np.float32)
 
+        # TODO: auto image shape.
         self.full_res_shape = (1242, 375)
         self.side_map = {"2": 2, "3": 3, "l": 2, "r": 3}
 

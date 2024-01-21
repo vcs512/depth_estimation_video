@@ -16,6 +16,8 @@ import networks
 
 cv2.setNumThreads(0)  # This speeds up evaluation 5x on our unix systems (OpenCV 3.3.1)
 
+# TODO
+import sys
 
 splits_dir = os.path.join(os.path.dirname(__file__), "splits")
 
@@ -59,7 +61,10 @@ def batch_post_process_disparity(l_disp, r_disp):
 
 def evaluate(opt):
     """Evaluates a pretrained model using a specified test set
-    """    
+    """
+    # MIN_DEPTH = 1e-3
+    # MAX_DEPTH = 80
+    
     output_path = os.path.join(opt.eval_out_dir, opt.model_name)
     os.makedirs(output_path)
 
@@ -167,12 +172,11 @@ def evaluate(opt):
         print("-> Saving predicted disparities to ", pred_output_path)
         np.save(pred_output_path, pred_disps)
 
-    #Save estimated depths as images.
-    if opt.save_pred_images:
+    if opt.save_pred_images:        
         for idx in range(len(pred_disps)):
-            disp_resized = cv2.resize(pred_disps[idx], dataset.full_res_shape)
+            disp_resized = cv2.resize(pred_disps[idx], (1216, 352))
             depth = 1 / disp_resized
-            # Normalize depth value, scale relatively.
+            # Normalize depth value.
             depth = depth - depth.min()
             depth = depth / depth.max()
             depth = np.uint8(depth * 255)
@@ -228,7 +232,8 @@ def evaluate(opt):
         pred_disp = cv2.resize(pred_disp, (gt_width, gt_height))
         pred_depth = 1 / pred_disp
 
-        if opt.eval_split == "eigen":
+        if opt.eval_split == "eigen" \
+            or opt.eval_split == "kitti_custom":
             mask = np.logical_and(gt_depth > opt.min_depth, gt_depth < opt.max_depth)
 
             crop = np.array([0.40810811 * gt_height, 0.99189189 * gt_height,
@@ -238,7 +243,6 @@ def evaluate(opt):
             mask = np.logical_and(mask, crop_mask)
 
         else:
-            # Common evaluation.
             mask = gt_depth > 0
 
         pred_depth = pred_depth[mask]
@@ -265,7 +269,6 @@ def evaluate(opt):
     print("\n  " + ("{:>8} | " * 7).format("abs_rel", "sq_rel", "rmse", "rmse_log", "a1", "a2", "a3"))
     print(("&{: 8.3f}  " * 7).format(*mean_errors.tolist()) + "\\\\")
 
-    # Log values as csv.
     errors_df = pd.DataFrame(
         data=[mean_errors.tolist()],
         columns=["abs_rel", "sq_rel", "rmse", "rmse_log", "a1", "a2", "a3"]
