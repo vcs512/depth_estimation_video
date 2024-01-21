@@ -135,3 +135,44 @@ class KITTIDepthDataset(KITTIDataset):
             depth_gt = np.fliplr(depth_gt)
 
         return depth_gt
+
+
+class PeringDataset(KITTIDataset):
+    """KITTI dataset which loads the original velodyne depth maps for ground truth
+    """
+    def __init__(self, *args, **kwargs):
+        super(PeringDataset, self).__init__(*args, **kwargs)
+        # Reference: https://ksimek.github.io/2013/08/13/intrinsic/.
+        self.K = np.array([[0.9375,    0, 0.5, 0],
+                           [     0, 1.25, 0.5, 0],
+                           [     0,    0,   1, 0],
+                           [     0,    0,   0, 1]], dtype=np.float32)
+
+        # TODO: auto image shape.
+        self.full_res_shape = (640, 480)
+
+    def check_depth(self):
+        return True
+
+    def get_image_path(self, folder, frame_index, side):
+        f_str = "{:010d}{}".format(frame_index, self.img_ext)
+        image_path = os.path.join(
+            self.data_path, folder, "cam0/data", f_str)
+        return image_path
+
+    def get_depth(self, folder, frame_index, side, do_flip):
+        f_str = "{:010d}.png".format(frame_index)
+        depth_path = os.path.join(
+            self.data_path,
+            folder,
+            "depth0/data",
+            f_str)
+
+        depth_gt = pil.open(depth_path)
+        depth_gt = depth_gt.resize(self.full_res_shape, pil.NEAREST)
+        depth_gt = np.array(depth_gt).astype(np.float32) / (2**16 - 1)
+
+        if do_flip:
+            depth_gt = np.fliplr(depth_gt)
+
+        return depth_gt

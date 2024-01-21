@@ -127,23 +127,26 @@ a new dataloader class which inherits from `MonoDataset`
 To prepare the ground truth depth maps run:
 ```shell
 python export_gt_depth.py \
-  --data_path ./kitti_data \
-  --split kitti_custom
+  --data_path ../dataset \
+  --split pering_deer \
+  --min_depth 0.001 \
+  --max_depth 1.0 \
+  --save_images
 ```
-...assuming that you have placed the KITTI dataset in the default location of `./kitti_data/`.
+...assuming that you have placed the dataset in `../dataset/`.
 
 The following example command evaluates the epoch 19 weights of a model named `mono_model`:
 ```shell
 python evaluate_depth.py \
   --load_weights_folder ./results/models/weights_19/ \
   --model_name experiment_name \
-  --eval_split kitti_custom \
-  --data_path ./kitti_data \
+  --eval_split pering_deer \
+  --data_path ../dataset \
   --eval_out_dir ./evaluate \
   --num_workers 4 \
   --batch_size 1 \
-  --min_depth 0.1 \
-  --max_depth 100.0 \
+  --min_depth 0.001 \
+  --max_depth 1.0 \
   --save_pred_disps \
   --save_pred_images \
   --eval_mono

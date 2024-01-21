@@ -91,15 +91,26 @@ def evaluate(opt):
 
         encoder_dict = torch.load(encoder_path, map_location=device)
 
-        dataset = datasets.KITTIRAWDataset(
-            opt.data_path,
-            filenames,
-            encoder_dict['height'],
-            encoder_dict['width'],
-            [0],
-            4,
-            is_train=False
-        )
+        if opt.eval_split.find('pering') != -1:
+            dataset = datasets.PeringDataset(
+                opt.data_path,
+                filenames,
+                encoder_dict['height'],
+                encoder_dict['width'],
+                [0],
+                4,
+                is_train=False
+            )
+        else:
+            dataset = datasets.KITTIRAWDataset(
+                opt.data_path,
+                filenames,
+                encoder_dict['height'],
+                encoder_dict['width'],
+                [0],
+                4,
+                is_train=False
+            )
         dataloader = DataLoader(
             dataset,
             batch_size=opt.batch_size,
@@ -172,10 +183,10 @@ def evaluate(opt):
         for idx in range(len(pred_disps)):
             disp_resized = cv2.resize(pred_disps[idx], dataset.full_res_shape)
             depth = 1 / disp_resized
-            # Normalize depth value, scale relatively.
-            depth = depth - depth.min()
-            depth = depth / depth.max()
-            depth = np.uint8(depth * 255)
+            # Normalize depth value to local save.
+            depth = depth - opt.min_depth
+            depth = depth / (opt.max_depth - opt.min_depth)
+            depth = np.uint16(depth * (2**16 - 1))
             save_path = os.path.join(
                 save_images_dir,
                 "{:010d}.png".format(int(filenames[idx].split()[1]))
