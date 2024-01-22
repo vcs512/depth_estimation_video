@@ -157,59 +157,51 @@ For stereo models, you must use the `--eval_stereo` flag (see note below):
 
 ## ⏳ Training
 
-By default models and tensorboard event files are saved to `~/tmp/<model_name>`.
+By default models and tensorboard event files are saved to `./results`.
 This can be changed with the `--log_dir` flag.
 
 
-**Monocular training:**
+**Monocular training (Scratch):**
 ```shell
-python train.py --model_name mono_model
+python train.py \
+  --model_name experiment_name \
+  --log_dir ./results \
+  --split pering_deer \
+  --data_path ../dataset \
+  --dataset pering \
+  --min_depth 0.001 \
+  --max_depth 1.0 \
+  --num_workers 4 \
+  --batch_size 1 \
+  --log_frequency 50 \
+  --save_frequency 1 \
+  --num_epochs 20 \
+  --png \
+  --no_cuda
 ```
-
-**Stereo training:**
-
-Our code defaults to using Zhou's subsampled Eigen training data. For stereo-only training we have to specify that we want to use the full Eigen training set – see paper for details.
-```shell
-python train.py --model_name stereo_model \
-  --frame_ids 0 --use_stereo --split eigen_full
-```
-
-**Monocular + stereo training:**
-```shell
-python train.py --model_name mono+stereo_model \
-  --frame_ids 0 -1 1 --use_stereo
-```
-
-
-### GPUs
-
-The code can only be run on a single GPU.
-You can specify which GPU to use with the `CUDA_VISIBLE_DEVICES` environment variable:
-```shell
-CUDA_VISIBLE_DEVICES=2 python train.py --model_name mono_model
-```
-
-All our experiments were performed on a single NVIDIA Titan Xp.
-
-| Training modality | Approximate GPU memory  | Approximate training time   |
-|-------------------|-------------------------|-----------------------------|
-| Mono              | 9GB                     | 12 hours                    |
-| Stereo            | 6GB                     | 8 hours                     |
-| Mono + Stereo     | 11GB                    | 15 hours                    |
-
 
 
 ### 💽 Finetuning a pretrained model
 
-Add the following to the training command to load an existing model for finetuning:
+Load an existing model for finetuning:
 ```shell
-python train.py --model_name finetuned_mono --load_weights_folder ~/tmp/mono_model/models/weights_19
+python train.py \
+  --model_name experiment_name \
+  --load_weights_folder ./models/mono_640x192 \
+  --log_dir ./results \
+  --split pering_deer \
+  --data_path ../dataset \
+  --dataset pering \
+  --min_depth 0.001 \
+  --max_depth 1.0 \
+  --num_workers 4 \
+  --batch_size 1 \
+  --log_frequency 50 \
+  --save_frequency 1 \
+  --num_epochs 20 \
+  --png \
+  --no_cuda
 ```
-
-
-### 🔧 Other training options
-
-Run `python train.py -h` (or look at `options.py`) to see the range of other training options, such as learning rates and ablation settings.
 
 
 ## 📦 Precomputed results
