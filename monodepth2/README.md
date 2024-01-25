@@ -128,23 +128,23 @@ To prepare the ground truth depth maps run:
 ```shell
 python export_gt_depth.py \
   --data_path ../dataset \
-  --split pering_deer \
+  --split pering_complete \
   --min_depth 0.001 \
   --max_depth 1.0 \
   --save_images
 ```
 ...assuming that you have placed the dataset in `../dataset/`.
 
-The following example command evaluates the epoch 19 weights of a model named `mono_model`:
+The following example command evaluates a model named `mono_model`:
 ```shell
 python evaluate_depth.py \
-  --load_weights_folder ./results/models/weights_19/ \
+  --load_weights_folder ./models/mono_640x192 \
   --model_name experiment_name \
-  --eval_split pering_deer \
+  --eval_split pering_complete \
   --data_path ../dataset \
   --eval_out_dir ./evaluate \
-  --num_workers 4 \
-  --batch_size 1 \
+  --num_workers 0 \
+  --batch_size 8 \
   --min_depth 0.001 \
   --max_depth 1.0 \
   --save_pred_disps \
@@ -166,16 +166,18 @@ This can be changed with the `--log_dir` flag.
 python train.py \
   --model_name experiment_name \
   --log_dir ./results \
-  --split pering_deer \
+  --split pering_complete \
   --data_path ../dataset \
   --dataset pering \
   --min_depth 0.001 \
   --max_depth 1.0 \
-  --num_workers 4 \
-  --batch_size 1 \
-  --log_frequency 50 \
+  --num_workers 0 \
+  --batch_size 8 \
+  --log_frequency 10 \
   --save_frequency 1 \
   --num_epochs 20 \
+  --disparity_smoothness 0.0001 \
+  --learning_rate 0.00001 \
   --png \
   --no_cuda
 ```
@@ -189,16 +191,18 @@ python train.py \
   --model_name experiment_name \
   --load_weights_folder ./models/mono_640x192 \
   --log_dir ./results \
-  --split pering_deer \
+  --split pering_complete \
   --data_path ../dataset \
   --dataset pering \
   --min_depth 0.001 \
   --max_depth 1.0 \
-  --num_workers 4 \
-  --batch_size 1 \
-  --log_frequency 50 \
+  --num_workers 0 \
+  --batch_size 8 \
+  --log_frequency 10 \
   --save_frequency 1 \
   --num_epochs 20 \
+  --disparity_smoothness 0.0001 \
+  --learning_rate 0.00001 \
   --png \
   --no_cuda
 ```

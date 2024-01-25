@@ -58,7 +58,7 @@ class MonodepthOptions:
         self.parser.add_argument("--disparity_smoothness",
                                  type=float,
                                  help="disparity smoothness weight",
-                                 default=1e-3)
+                                 default=1e-4)
         self.parser.add_argument("--scales",
                                  nargs="+",
                                  type=int,
@@ -89,7 +89,7 @@ class MonodepthOptions:
         self.parser.add_argument("--learning_rate",
                                  type=float,
                                  help="learning rate",
-                                 default=1e-4)
+                                 default=1e-5)
         self.parser.add_argument("--num_epochs",
                                  type=int,
                                  help="number of epochs",
@@ -200,6 +200,9 @@ class MonodepthOptions:
                                  action="store_true")
         self.parser.add_argument("--save_pred_images",
                                  help="if set will save predicted depth images",
+                                 action="store_true")
+        self.parser.add_argument("--eval_test",
+                                 help="if set, use test_files.txt",
                                  action="store_true")
 
     def parse(self):
