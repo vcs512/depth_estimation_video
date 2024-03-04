@@ -1,12 +1,13 @@
 ## Towards Robust Monocular Depth Estimation: Mixing Datasets for Zero-shot Cross-dataset Transfer
 
-This repository contains code to compute depth from a single image. It accompanies our [paper](https://arxiv.org/abs/1907.01341v3):
+This repository contains code to compute depth from a single image.
+It accompanies the author's [paper](https://arxiv.org/abs/1907.01341v3):
 
 >Towards Robust Monocular Depth Estimation: Mixing Datasets for Zero-shot Cross-dataset Transfer  
 René Ranftl, Katrin Lasinger, David Hafner, Konrad Schindler, Vladlen Koltun
 
 
-and our [preprint](https://arxiv.org/abs/2103.13413):
+and [preprint](https://arxiv.org/abs/2103.13413):
 
 > Vision Transformers for Dense Prediction  
 > René Ranftl, Alexey Bochkovskiy, Vladlen Koltun
@@ -292,9 +293,17 @@ and for LDM3D
 
 ### Acknowledgements
 
-Our work builds on and uses code from [timm](https://github.com/rwightman/pytorch-image-models) and [Next-ViT](https://github.com/bytedance/Next-ViT). 
+Author's work builds on and uses code from [timm](https://github.com/rwightman/pytorch-image-models) and [Next-ViT](https://github.com/bytedance/Next-ViT). 
 We'd like to thank the authors for making these libraries available.
 
-### License 
+### Author's License 
 
 MIT License 
+
+## Evaluate depth
+
+```bash
+python evaluate_depth.py
+    --model_type dpt_swin2_tiny_256
+    --output_path ./evaluate/<desired_name>
+```
