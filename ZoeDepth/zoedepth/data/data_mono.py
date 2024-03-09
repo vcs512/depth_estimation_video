@@ -350,7 +350,7 @@ class DataLoadPreprocess(Dataset):
             depth_gt = np.asarray(depth_gt, dtype=np.float32)
             depth_gt = np.expand_dims(depth_gt, axis=2)
 
-            if self.config.dataset == 'nyu':
+            if self.config.dataset == 'nyu' or self.config.dataset == 'pering':
                 depth_gt = depth_gt / 1000.0
             else:
                 depth_gt = depth_gt / 256.0
@@ -395,7 +395,7 @@ class DataLoadPreprocess(Dataset):
                 if has_valid_depth:
                     depth_gt = np.asarray(depth_gt, dtype=np.float32)
                     depth_gt = np.expand_dims(depth_gt, axis=2)
-                    if self.config.dataset == 'nyu':
+                    if self.config.dataset == 'nyu' or self.config.dataset == 'pering':
                         depth_gt = depth_gt / 1000.0
                     else:
                         depth_gt = depth_gt / 256.0

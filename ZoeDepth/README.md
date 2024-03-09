@@ -192,17 +192,36 @@ Pretrained resources are prefixed with `url::` to indicate weights should be fet
 The dataset name should match the corresponding key in `utils.config.DATASETS_CONFIG` .
 
 ## **Training**
-Download training datasets as per instructions given [here](https://github.com/cleinc/bts/tree/master/pytorch#nyu-depvh-v2). Then for training a single head model on NYU-Depth-v2 :
+1. Adjust dataset paths and min/max depth in [config.py](./zoedepth/utils/config.py),
+inside `DATASETS_CONFIG`.
+
+2. Adjust model type and input size in `model` section inside
+  [config_zoedpth.json](./zoedepth/models/zoedepth/config_zoedepth.json)
+
+3. Adjust training hyper-parameters in `train` section inside
+  [config_zoedpth.json](./zoedepth/models/zoedepth/config_zoedepth.json)
+
+4. Train model (saved in WandB):
+    ```bash
+    python train_mono.py \
+      -m zoedepth \
+      -p="" \
+      -d pering
+    ```
+
+## **Running model**
+Run trained model with images in `./inputs/` being saved in `./outputs/`:
 ```bash
-python train_mono.py -m zoedepth --pretrained_resource=""
+python run_custom.py \
+  -m zoedepth \
+  -p "local::./results/model_trained.pt" \
+  -d pering \
+  -i ./inputs/ \
+  -o ./outputs/
 ```
 
-For training the Zoe-NK model:
-```bash
-python train_mix.py -m zoedepth_nk --pretrained_resource=""
-```
 ## **Gradio demo**
-We provide a UI demo built using [gradio](https://gradio.app/). To get started, install UI requirements:
+Authors provided an UI demo built using [gradio](https://gradio.app/). To get started, install UI requirements:
 ```bash
 pip install -r ui/ui_requirements.txt
 ```

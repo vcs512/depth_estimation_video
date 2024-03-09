@@ -36,7 +36,7 @@ ROOT = pathlib.Path(__file__).parent.parent.resolve()
 HOME_DIR = os.path.expanduser("~")
 
 COMMON_CONFIG = {
-    "save_dir": os.path.expanduser("~/shortcuts/monodepth3_checkpoints"),
+    "save_dir": "./results",
     "project": "ZoeDepth",
     "tags": '',
     "notes": "",
@@ -98,14 +98,38 @@ DATASETS_CONFIG = {
         "avoid_boundary": False,
         "min_depth": 1e-3,   # originally 0.1
         "max_depth": 10,
-        "data_path": os.path.join(HOME_DIR, "shortcuts/datasets/nyu_depth_v2/sync/"),
-        "gt_path": os.path.join(HOME_DIR, "shortcuts/datasets/nyu_depth_v2/sync/"),
-        "filenames_file": "./train_test_inputs/nyudepthv2_train_files_with_gt.txt",
+        "data_path": "./dataset/sync/",
+        "gt_path": "./dataset/sync/",
+        "filenames_file": "./train_test_inputs/kitchen_800.txt",
         "input_height": 480,
         "input_width": 640,
-        "data_path_eval": os.path.join(HOME_DIR, "shortcuts/datasets/nyu_depth_v2/official_splits/test/"),
-        "gt_path_eval": os.path.join(HOME_DIR, "shortcuts/datasets/nyu_depth_v2/official_splits/test/"),
-        "filenames_file_eval": "./train_test_inputs/nyudepthv2_test_files_with_gt.txt",
+        "data_path_eval": "./dataset/sync/",
+        "gt_path_eval": "./dataset/sync/",
+        "filenames_file_eval": "./train_test_inputs/kitchen_800.txt",
+        "min_depth_eval": 1e-3,
+        "max_depth_eval": 10,
+        "min_depth_diff": -10,
+        "max_depth_diff": 10,
+
+        "do_random_rotate": True,
+        "degree": 1.0,
+        "do_kb_crop": False,
+        "garg_crop": False,
+        "eigen_crop": True
+    },
+    "pering": {
+        "dataset": "pering",
+        "avoid_boundary": False,
+        "min_depth": 1e-3,
+        "max_depth": 10,
+        "data_path": "../dataset/",
+        "gt_path": "../dataset/",
+        "filenames_file": "./train_test_inputs/pering_train.txt",
+        "input_height": 480,
+        "input_width": 640,
+        "data_path_eval": "../dataset/",
+        "gt_path_eval": "../dataset/",
+        "filenames_file_eval": "./train_test_inputs/pering_val.txt",
         "min_depth_eval": 1e-3,
         "max_depth_eval": 10,
         "min_depth_diff": -10,
@@ -235,8 +259,8 @@ ALL_EVAL_DATASETS = ALL_INDOOR + ALL_OUTDOOR
 
 COMMON_TRAINING_CONFIG = {
     "dataset": "nyu",
-    "distributed": True,
-    "workers": 16,
+    "distributed": False,
+    "workers": 4,
     "clip_grad": 0.1,
     "use_shared_dict": False,
     "shared_dict": None,
@@ -375,7 +399,7 @@ def get_config(model_name, mode='train', dataset=None, **overwrite_kwargs):
     check_choices("Model", model_name, ["zoedepth", "zoedepth_nk"])
     check_choices("Mode", mode, ["train", "infer", "eval"])
     if mode == "train":
-        check_choices("Dataset", dataset, ["nyu", "kitti", "mix", None])
+        check_choices("Dataset", dataset, ["pering", "nyu", "kitti", "mix", None])
 
     config = flatten({**COMMON_CONFIG, **COMMON_TRAINING_CONFIG})
     config = update_model_config(config, mode, model_name)

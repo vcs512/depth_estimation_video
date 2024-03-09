@@ -1,6 +1,6 @@
 {
     "model": {
-        "name": "ZoeDepth_swin2T_pering_depth10_MiDaStrain",
+        "name": "ZoeDepth_swin2T_pering_depth10_MiDaSFrozen_evaldiv1000",
         "version_name": "v1",
         "n_bins": 64,
         "bin_embedding_dim": 128,
@@ -20,7 +20,7 @@
     },
     
     "train": {
-        "train_midas": true,
+        "train_midas": false,
         "use_pretrained_midas": true,
         "trainer": "zoedepth",
         "epochs": 5,

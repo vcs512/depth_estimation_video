@@ -123,6 +123,8 @@ if __name__ == '__main__':
         overwrite_kwargs["trainer"] = args.trainer
 
     config = get_config(args.model, "train", args.dataset, **overwrite_kwargs)
+    pprint(config)
+    
     # git_commit()
     if config.use_shared_dict:
         shared_dict = mp.Manager().dict()
