@@ -1,0 +1,17 @@
+/deer_robot_converted/cam0/data/0000000945.png /deer_robot_converted/depth0/data/0000000945.png 600.0000
+/deer_robot_converted/cam0/data/0000000946.png /deer_robot_converted/depth0/data/0000000946.png 600.0000
+/deer_robot_converted/cam0/data/0000000947.png /deer_robot_converted/depth0/data/0000000947.png 600.0000
+/deer_robot_converted/cam0/data/0000000948.png /deer_robot_converted/depth0/data/0000000948.png 600.0000
+/deer_robot_converted/cam0/data/0000000949.png /deer_robot_converted/depth0/data/0000000949.png 600.0000
+/deer_robot_converted/cam0/data/0000000950.png /deer_robot_converted/depth0/data/0000000950.png 600.0000
+/deer_robot_converted/cam0/data/0000000951.png /deer_robot_converted/depth0/data/0000000951.png 600.0000
+/deer_robot_converted/cam0/data/0000000952.png /deer_robot_converted/depth0/data/0000000952.png 600.0000
+/deer_robot_converted/cam0/data/0000000953.png /deer_robot_converted/depth0/data/0000000953.png 600.0000
+/deer_robot_converted/cam0/data/0000000954.png /deer_robot_converted/depth0/data/0000000954.png 600.0000
+/deer_robot_converted/cam0/data/0000000955.png /deer_robot_converted/depth0/data/0000000955.png 600.0000
+/deer_robot_converted/cam0/data/0000000956.png /deer_robot_converted/depth0/data/0000000956.png 600.0000
+/deer_robot_converted/cam0/data/0000000957.png /deer_robot_converted/depth0/data/0000000957.png 600.0000
+/deer_robot_converted/cam0/data/0000000958.png /deer_robot_converted/depth0/data/0000000958.png 600.0000
+/deer_robot_converted/cam0/data/0000000959.png /deer_robot_converted/depth0/data/0000000959.png 600.0000
+/deer_robot_converted/cam0/data/0000000960.png /deer_robot_converted/depth0/data/0000000960.png 600.0000
+/deer_robot_converted/cam0/data/0000000961.png /deer_robot_converted/depth0/data/0000000961.png 600.0000

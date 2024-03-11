@@ -1,6 +1,6 @@
 {
     "model": {
-        "name": "ZoeDepth_swin2T_pering_depth10_MiDaStrain",
+        "name": "ZoeDepth",
         "version_name": "v1",
         "n_bins": 64,
         "bin_embedding_dim": 128,
@@ -10,7 +10,7 @@
         "attractor_gamma": 2,
         "attractor_kind" : "mean",
         "attractor_type" : "inv",
-        "midas_model_type" : "DPT_SwinV2_T_256",
+        "midas_model_type" : "MiDaS_small",
         "min_temp": 0.0212,
         "max_temp": 50.0,
         "output_distribution": "logbinomial",
@@ -24,7 +24,7 @@
         "use_pretrained_midas": true,
         "trainer": "zoedepth",
         "epochs": 5,
-        "bs": 2,
+        "bs": 4,
         "optim_kwargs": {"lr": 0.000161, "wd": 0.01},
         "sched_kwargs": {"div_factor": 1, "final_div_factor": 10000, "pct_start": 0.7, "three_phase":false, "cycle_momentum": true},
         "same_lr": false,
