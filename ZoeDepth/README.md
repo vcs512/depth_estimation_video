@@ -196,10 +196,10 @@ The dataset name should match the corresponding key in `utils.config.DATASETS_CO
 inside `DATASETS_CONFIG`.
 
 2. Adjust model type and input size in `model` section inside
-  [config_zoedpth.json](./zoedepth/models/zoedepth/config_zoedepth.json)
+  [config_zoedepth.json](./zoedepth/models/zoedepth/config_zoedepth.json)
 
 3. Adjust training hyper-parameters in `train` section inside
-  [config_zoedpth.json](./zoedepth/models/zoedepth/config_zoedepth.json)
+  [config_zoedepth.json](./zoedepth/models/zoedepth/config_zoedepth.json)
 
 4. Train model (saved in WandB):
     ```bash
