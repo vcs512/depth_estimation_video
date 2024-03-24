@@ -1,5 +1,6 @@
 # https://discuss.streamlit.io/t/how-to-stream-ip-camera-in-webrtc-streamer/31379/4
 import cv2
+import gc
 import numpy as np
 import streamlit as st
 from streamlit.runtime.scriptrunner import (
@@ -14,6 +15,7 @@ from zoedepth.utils.config import get_config
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LAST_INPUT_FRAME = np.empty(shape=(1,1))
+MODEL = None
 
 def model_infer(model, input_frame):
     start_time = time.time()
@@ -53,20 +55,41 @@ with column_1:
 with column_2:
     output_viewer = st.image([])
 
-model = create_model(
-    pretrained_resource="local::./results/ZoeDepth_swin2T_pering_depth10_MiDaSFrozenv1_09-Mar_16-03-72536d7cb6a0_best.pt"
-)
+
+def stop_inference_routine():
+    global input_capture
+    global input_viewer
+    global output_viewer
+    global MODEL
+    # Frontend.
+    input_viewer = st.image([])
+    output_viewer = st.image([])
+    input_capture.release()
+    del input_capture
+    # Model.
+    del MODEL
+    torch.cuda.empty_cache()
+    gc.collect()
+    MODEL = None
+    quit()
 
 def get_input_frame(video_capture):
     global LAST_INPUT_FRAME
     global run_button
+    global input_viewer
     while run_button:
         status, frame = video_capture.read()
         if status:
-            LAST_INPUT_FRAME = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            input_viewer.image(image=LAST_INPUT_FRAME)
+            LAST_INPUT_FRAME = frame
+            input_viewer.image(image=LAST_INPUT_FRAME, channels="BGR")
+    
+    # Stop view.
+    stop_inference_routine()
 
 if run_button:
+    MODEL = create_model(
+    pretrained_resource="local::./results/ZoeDepth_swin2T_pering_depth10_MiDaStrain_nbins32_batch2_ephocs20v1_19-Mar_12-56-fb09484e3218_best.pt"
+    )
     input_thread = Thread(target=get_input_frame, args=[input_capture])
     input_thread.daemon = True
     add_script_run_ctx(input_thread)
@@ -75,8 +98,7 @@ if run_button:
 while run_button:
     if len(LAST_INPUT_FRAME) > 1:
         depth_frame = model_infer(
-            model=model,
+            model=MODEL,
             input_frame=LAST_INPUT_FRAME
         )
         output_viewer.image(image=depth_frame)
-
