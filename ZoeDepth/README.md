@@ -166,7 +166,7 @@ This will save a file `pred.png` in the root folder, showing RGB and correspondi
 Models are defined under `models/` folder, with `models/<model_name>_<version>.py` containing model definitions and  `models/config_<model_name>.json` containing configuration.
 
 Single metric head models (Zoe_N and Zoe_K from the paper) have the common definition and are defined under `models/zoedepth` while as the multi-headed model (Zoe_NK) is defined under `models/zoedepth_nk`.
-## **Evaluation**
+## **Evaluation - Authors**
 Download the required dataset and change the `DATASETS_CONFIG` dictionary in `utils/config.py` accordingly. 
 ### Evaluating offical models
 On NYU-Depth-v2 for example:
@@ -237,6 +237,16 @@ python run_custom.py \
     ```bash
     streamlit run demo.py
     ```
+
+## **Evaluation**
+
+```bash
+python3 evaluate_depth.py \
+  -o ./evaluate/experiment \
+  -p local::./results/model_trained.pt \
+  [--save_images] \
+  [--eval_test]
+```
 
 ## **Gradio demo**
 Authors provided an UI demo built using [gradio](https://gradio.app/). To get started, install UI requirements:

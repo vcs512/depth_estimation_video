@@ -131,7 +131,8 @@ python export_gt_depth.py \
   --split pering_complete \
   --min_depth 0.001 \
   --max_depth 1.0 \
-  --save_images
+  [--eval_test] \
+  [--save_images]
 ```
 ...assuming that you have placed the dataset in `../dataset/`.
 
@@ -147,9 +148,10 @@ python evaluate_depth.py \
   --batch_size 8 \
   --min_depth 0.001 \
   --max_depth 1.0 \
-  --save_pred_disps \
-  --save_pred_images \
-  --eval_mono
+  --eval_mono \
+  [--eval_test] \
+  [--save_pred_disps] \
+  [--save_pred_images]
 ```
 
 For stereo models, you must use the `--eval_stereo` flag (see note below):

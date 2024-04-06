@@ -3,7 +3,13 @@ import cv2
 import numpy as np
 import pandas as pd
 import argparse
-from skimage import exposure
+import torch
+from zoedepth.models.builder import build_model
+from zoedepth.utils.config import get_config
+
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+MIN_DEPTH = 0.001
+MAX_DEPTH = 10.0
 
 
 def compute_errors(gt, pred):
@@ -27,36 +33,46 @@ def compute_errors(gt, pred):
     return abs_rel, sq_rel, rmse, rmse_log, a1, a2, a3
 
 
-def disp_to_depth(disp, min_depth = 0.001, max_depth=1.0):
-    """Convert network's disparity output into depth prediction.
-    """
-    
-    # scaled_disp = (disp - disp.min()) / (disp.max() - disp.min())
-    scaled_depth = 1.0 - disp
-    depth = min_depth + ( max_depth - min_depth ) * scaled_depth
-    
-    depth = exposure.adjust_gamma(image=depth, gamma=5.0)
- 
-    return None, depth
+def create_model(pretrained_resource):
+    # Load default pretrained resource defined in config if not set
+    overwrite = {"pretrained_resource": pretrained_resource}
+    config = get_config("zoedepth", "eval", "pering", **overwrite)
+    model = build_model(config)
+    model = model.to(DEVICE)    
+    return model
+
+def model_infer(model, input_frame):
+    depth = model.infer_pil(input_frame)
+    if isinstance(depth, torch.Tensor):
+        depth = depth.squeeze().cpu().numpy()
+    return depth
 
 def run(
-    input_path,
-    output_path,
-    side=False,
+    output_path: str,
+    model_filepath: str,
+    eval_test: bool,
+    save_images=False,
     ):
     """Evaluates a pretrained model using a specified test set.
 
     Args:
-        input_path (str): path to input folder
         output_path (str): path to output folder
-        side (bool): RGB and depth side by side in output images?
+        model_filepath (str): model weights .pt filepath
+        eval_test (bool): option to evaluate on test set
+        save_images (bool): save images to disk
     """   
 
     archives_path = '../dataset/{0}/{1}/data/{2}'
-    with open('./splits/pering_complete/val_files.txt') as f:
+    
+    if eval_test:
+        filenames_path = "test_files.txt"
+    else:
+        filenames_path = "val_files.txt"
+    with open(f'./splits/pering_complete/{filenames_path}') as f:
         archives = f.readlines()
     
     os.makedirs(output_path, exist_ok=True)
+    model = create_model(model_filepath)
 
     num_images = len(archives)
     errors = list()
@@ -64,44 +80,31 @@ def run(
         directory, number, _ = archive.split()
         archive_name = '{:010d}.png'.format(int(number))
 
-        disp_path = os.path.join('./outputs', directory, archive_name)
-        print("Processing {} ({}/{})".format(disp_path, index + 1, num_images))
+        input_path = os.path.join('../dataset', directory, 'cam0', 'data', archive_name)
+        print("Processing {} ({}/{})".format(input_path, index + 1, num_images))
 
-        prediction = cv2.imread(disp_path, cv2.IMREAD_GRAYSCALE)
-        prediction = prediction / 255
+        input_image = cv2.imread(input_path, cv2.IMREAD_UNCHANGED)
+        input_image = cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB)
         
-        _, prediction_depth = disp_to_depth(
-            disp=prediction,
-            min_depth=0.001,
-            max_depth=1.0
-        )
+        prediction_depth = model_infer(model=model, input_frame=input_image)
 
         # output
         if output_path is not None:
             os.makedirs(os.path.join(output_path, directory), exist_ok=True)
-            filename = os.path.join(
-                output_path, directory, archive_name
-            )
-            if not side:
-                cv2.imwrite(filename + ".png", np.uint16((2**16 - 1)*prediction_depth) )
+            filename = os.path.join(output_path, directory, archive_name)
+            if save_images:
+                cv2.imwrite(filename + ".png", np.uint16((2**16 - 1) * (prediction_depth / MAX_DEPTH)) )
 
         gt_path = archives_path.format(directory, 'depth0', archive_name)
         gt_depth = cv2.imread(gt_path, cv2.IMREAD_UNCHANGED)
-        
-        # # GT metric.
-        # gt_depth = gt_depth / (2**16 - 1)
 
-        # GT relative.
-        gt_depth = (gt_depth - gt_depth.min()) / (gt_depth.max() - gt_depth.min())
-        gt_depth = gt_depth / gt_depth.max()
-        
+        # GT metric.
+        gt_depth = gt_depth / (1000)
         mask = gt_depth > 0
         
-        filename = os.path.join(
-                output_path, directory, archive_name + '-gt'
-            )
-        if not side:
-            cv2.imwrite(filename + ".png", np.uint16((2**16 - 1)*gt_depth))
+        filename = os.path.join(output_path, directory, archive_name + '-gt')
+        if save_images:
+            cv2.imwrite(filename + ".png", np.uint16((2**16 - 1) * (gt_depth / MAX_DEPTH)))
 
         errors.append(compute_errors(gt_depth[mask], prediction_depth[mask]))
 
@@ -128,23 +131,36 @@ def run(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-i', '--input_path',
-                        default=None,
-                        help='Folder with input images (if no input path is specified, images are tried to be grabbed '
-                             'from camera)'
-                        )
-
-    parser.add_argument('-o', '--output_path',
-                        default=None,
-                        help='Folder for output images'
-                        )
-
-    parser.add_argument('-s', '--side',
-                        action='store_true',
-                        help='Output images contain RGB and depth images side by side'
-                        )
+    parser.add_argument(
+        '-o',
+        '--output_path',
+        default=None,
+        help='Folder for output results'
+    )
+    parser.add_argument(
+        '-p',
+        '--pretrained_weights',
+        help='model weights filepath'
+    )
+    parser.add_argument(
+        "--eval_test",
+        help="if set, use test_files.txt",
+        action="store_true",
+        default=False
+    )
+    parser.add_argument(
+        '-s',
+        '--save_images',
+        action='store_true',
+        help='Save images to disk'
+    )
 
     args = parser.parse_args()
 
     # compute depth maps
-    run(args.input_path, args.output_path, args.side)
+    run(
+        output_path=args.output_path,
+        model_filepath=args.pretrained_weights,
+        eval_test=args.eval_test,
+        save_images=args.save_images
+    )
