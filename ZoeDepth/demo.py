@@ -21,6 +21,7 @@ UPPER_LIMIT_PERC = 0.3
 UPPER_LIMIT = 0
 LOWER_LIMIT_PERC = 0.2
 LOWER_LIMIT = 0
+ZOEDEPTH_MODEL_FILEPATH = "local::./results/ZoeDepth_demo.pt"
 
 def create_model(pretrained_resource):
     # Load default pretrained resource defined in config if not set
@@ -137,9 +138,7 @@ with column_2:
     nearest_metric_text = st.empty()
 
 if run_button:
-    MODEL = create_model(
-    pretrained_resource="local::./results/ZoeDepth_swin2T_pering_depth10_MiDaStrain_nbins32_batch2_ephocs20v1_19-Mar_12-56-fb09484e3218_best.pt"
-    )
+    MODEL = create_model(pretrained_resource=ZOEDEPTH_MODEL_FILEPATH)
     input_thread = Thread(target=get_input_frame, args=[input_capture])
     input_thread.daemon = True
     add_script_run_ctx(input_thread)

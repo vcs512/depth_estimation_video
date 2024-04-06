@@ -10,8 +10,6 @@
 
 [[Paper]](https://arxiv.org/abs/2302.12288)
 
-![teaser](assets/zoedepth-teaser.png)
-
 ## **Table of Contents** <!-- omit in toc -->
 - [**Usage**](#usage)
   - [Using torch hub](#using-torch-hub)
@@ -219,6 +217,26 @@ python run_custom.py \
   -i ./inputs/ \
   -o ./outputs/
 ```
+
+## Streamlit demo
+
+1. Use a RTSP server to simulate a camera stream input in `rtsp://localhost:8554/input`.
+  Using (mediamtx)[https://github.com/bluenviron/mediamtx/releases/tag/v1.6.0]:
+    ```bash
+    ./mediamtx
+    ```
+
+2. Publish to server:
+    ```bash
+    ffmpeg -re -stream_loop -1 -i /path/to/video.mp4 -c copy -f rtsp -rtsp_transport tcp rtsp://localhost:8554/input
+    ```
+
+3. Provide ZoeDepth model to be used in: `./results/ZoeDepth_demo.pt`
+
+4. Run web demo:
+    ```bash
+    streamlit run demo.py
+    ```
 
 ## **Gradio demo**
 Authors provided an UI demo built using [gradio](https://gradio.app/). To get started, install UI requirements:
