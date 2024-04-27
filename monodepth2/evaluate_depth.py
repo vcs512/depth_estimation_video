@@ -23,11 +23,16 @@ splits_dir = os.path.join(os.path.dirname(__file__), "splits")
 # baseline of 0.1 units. The KITTI rig has a baseline of 54cm. Therefore,
 # to convert our stereo predictions to real-world scale we multiply our depths by 5.4.
 STEREO_SCALE_FACTOR = 5.4
+MAX_DEPTH_REAL = 10.0
 
 
 def compute_errors(gt, pred):
     """Computation of error metrics between predicted and ground truth depths
     """
+
+    gt = gt * MAX_DEPTH_REAL
+    pred = pred * MAX_DEPTH_REAL
+    
     thresh = np.maximum((gt / pred), (pred / gt))
     a1 = (thresh < 1.25     ).mean()
     a2 = (thresh < 1.25 ** 2).mean()
