@@ -29,6 +29,7 @@ MAX_DEPTH_REAL = 10.0
 def compute_errors(gt, pred):
     """Computation of error metrics between predicted and ground truth depths
     """
+
     gt = gt * MAX_DEPTH_REAL
     pred = pred * MAX_DEPTH_REAL
     
