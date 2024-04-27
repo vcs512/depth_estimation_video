@@ -1,0 +1,4 @@
+*.pyc
+
+ckpts/
+results/
