@@ -189,7 +189,7 @@ class Trainer:
 
         self.save_opts()
         self.cnt = -1
-        self.ones = torch.ones(self.opt.batch_size,1,256,256,1).cuda()
+        self.ones = torch.ones(self.opt.batch_size,1,256,256,1).to(self.device)
 
     def train(self):
         """Run the entire training pipeline
@@ -221,11 +221,8 @@ class Trainer:
             self.model_optimizer.step()
             duration = time.time() - before_op_time
 
-            # log less frequently after the first 2000 steps to save time & disk space
-            early_phase = batch_idx % self.opt.log_frequency == 0 and self.step < 2000
-            late_phase = self.step % 2000 == 0
-
-            if early_phase or late_phase:
+            # log.
+            if (batch_idx % self.opt.log_frequency == 0):
                 self.log_time(batch_idx, duration, losses["loss"].cpu().data)
 
                 if "depth_gt" in inputs:
@@ -326,7 +323,7 @@ class Trainer:
 
             # add random numbers to break ties
             identity_reprojection_loss += torch.randn(
-                identity_reprojection_loss.shape).cuda() * 0.00001
+                identity_reprojection_loss.shape).to(self.device) * 0.00001
 
             combined = torch.cat((identity_reprojection_loss, reprojection_loss), dim=1)
 
@@ -501,7 +498,7 @@ class Trainer:
             inputs = self.val_iter.__next__()
 
         with torch.no_grad():
-            inputs[("color_aug", 0, 0)] = inputs[("color_aug", 0, 0)].cuda()
+            inputs[("color_aug", 0, 0)] = inputs[("color_aug", 0, 0)].to(self.device)
             features = self.models["encoder"](inputs[("color_aug", 0, 0)]) #
             outputs = self.models["depth"](features)
             depth = output_to_depth(outputs[('out', 0)], self.opt.min_depth, self.opt.max_depth)
@@ -550,7 +547,7 @@ class Trainer:
                 break
 
             with torch.no_grad():
-                inputs[("color_aug", 0, 0)] = inputs[("color_aug", 0, 0)].cuda()
+                inputs[("color_aug", 0, 0)] = inputs[("color_aug", 0, 0)].to(self.device)
                 features = self.models["encoder"](inputs[("color_aug", 0, 0)]) #
                 outputs = self.models["depth"](features)
                 depth = output_to_depth(outputs[('out', 0)], self.opt.min_depth, self.opt.max_depth)
@@ -617,8 +614,8 @@ class Trainer:
                     inputs = self.val_iter.__next__()
 
             with torch.no_grad():
-                inputs[("color_aug", 0, 0)] = inputs[("color_aug", 0, 0)].cuda()
-                inputs["depth_gt"] = inputs["depth_gt"].cuda()
+                inputs[("color_aug", 0, 0)] = inputs[("color_aug", 0, 0)].to(self.device)
+                inputs["depth_gt"] = inputs["depth_gt"].to(self.device)
                 features = self.models["encoder"](inputs[("color_aug", 0, 0)])
                 outputs = self.models["depth"](features)
                 depth = output_to_depth(outputs[('out', 0)], self.opt.min_depth, self.opt.max_depth)

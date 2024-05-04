@@ -6,6 +6,7 @@ services:
     entrypoint: ['bash']
     volumes:
       - ./:/app
+      - ../dataset/:/dataset
     deploy:
       resources:
         reservations:

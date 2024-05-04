@@ -52,7 +52,7 @@ DistDepth is a highly robust monocular depth estimation approach for generic ind
    docker exec -it distdepth-distdepth-1 bash
    ```
 
-## <div align="">Single Image Inference Demo</div>
+## <div align=""> Inference Demo </div>
 
 1. Download pretrained models 
 [<a href="https://drive.google.com/file/d/1N3UAeSR5sa7KcMJAeKU961KUNBZ6vIgi/view?usp=sharing">here</a>]
@@ -74,32 +74,19 @@ since SimSIN is created with stereo baseline of 13.12cm,
 and during training it uses a stereo scale of 10cm.
 (See [Issue 27](https://github.com/facebookresearch/DistDepth/issues/27#issue-1989386374))
 
-## <div align="">Pointcloud Generation</div>
+## Example data
 
-Some Sample data are provided in `data/sample_pc`.
-
-   ``` python visualize_pc.py ```
-
-This will generate pointcloud in '.ply' format by image and depth map inputs for 'data/sample_pc/0000.jpg'. ply file is saved under 'data/sample_pc' folder. Use meshlab to visualize the pointcloud.
-
-## <div align=""> Data</div>
-
-Download SimSIN [<a href="https://drive.google.com/file/d/1P93270GM_gbx3Cc-b5lLdHOr9P9ZWyLO/view?usp=sharing">here</a>]. For UniSIN and VA, please download at the [<a href="https://distdepth.github.io/">project site</a>].
-
-To generate stereo data with depth using Habitat, we provide a snippet here. Install <a href="https://github.com/facebookresearch/habitat-sim">Habitat</a> first.  
-
-   ``` python visualize_pc.py ```
-
-## <div align=""> Training with PoseNet and DepthNet</div>
-
-For a simple taste of training, download a smaller replica set [<a href="https://drive.google.com/file/d/1g-OXOsKeincRc1-O3x42wVRFKpog2aRe/view?usp=sharing">here</a>] and create and put under './SimSIN-simple'.
+For a simple taste of training, download a smaller replica set 
+[<a href="https://drive.google.com/file/d/1g-OXOsKeincRc1-O3x42wVRFKpog2aRe/view?usp=sharing">here</a>]
 
 The folder structure should be
 
-      .
-      ├── SimSIN-simple
-            ├── replica
-            ├── replica_train.txt
+   ```
+   .
+   ├── SimSIN-simple
+         ├── replica
+         ├── replica_train.txt
+   ```
 
 Download weights
 
@@ -109,31 +96,40 @@ mkdir weights
 wget -O weights/dpt_hybrid_nyu-2ce69ec7.pt https://github.com/intel-isl/DPT/releases/download/1_0/dpt_hybrid_nyu-2ce69ec7.pt 
 ```
 
-Training command
+## Training
 
-The below command trains networks by using stereo and current frame (PoseNet is not used)
-
-```shell
-python execute.py --exe train --model_name distdepth-distilled --frame_ids 0 --log_dir='./tmp' --data_path SimSIN-simple --dataset SimSIN  --batch_size 15 --width 256 --height 256 --max_depth 10.0  --num_epochs 10 --scheduler_step_size 8 --learning_rate 0.0001 --use_stereo  --thre 0.95 --num_layers 152 --log_frequency 25
-```
-
-The below command trains networks by using current and past/future one frame
+The below command trains networks by using current and past/future one frame:
 
 ```shell
-python execute.py --exe train --model_name distdepth-distilled --frame_ids 0 -1 1 --log_dir='./tmp' --data_path SimSIN-simple --dataset SimSIN  --batch_size 15 --width 256 --height 256 --max_depth 10.0  --num_epochs 10 --scheduler_step_size 8 --learning_rate 0.0001 --thre 0.95 --num_layers 152 --log_frequency 25
+python3 execute.py \
+   --exe train \
+   --model_name distdepth-distilled \
+   --frame_ids 0 -1 1 \
+   --log_dir='./tmp' \
+   --data_path /dataset/replica-sample \
+   --dataset SimSIN  \
+   --batch_size 4 \
+   --width 256 \
+   --height 256 \
+   --max_depth 10.0  \
+   --num_epochs 10 \
+   --scheduler_step_size 8 \
+   --learning_rate 0.0001 \
+   --thre 0.95 \
+   --num_layers 34 \
+   --log_frequency 6 \
+   --num_workers 0 \
+   [--no_cuda]
 ```
 
-The below command trains networks by using current and past/future one frame and stereo
+Changing different expert network: See execute_func.py L59.
 
-```shell
-python execute.py --exe train --model_name distdepth-distilled --frame_ids 0 -1 1 --log_dir='./tmp' --data_path SimSIN-simple --dataset SimSIN  --batch_size 15 --width 256 --height 256 --max_depth 10.0  --num_epochs 10 --scheduler_step_size 8 --learning_rate 0.0001 --thre 0.95 --num_layers 152 --log_frequency 25 --use_stereo
-```
+Switch to different version of DPTDepthModel.
+The default now uses DPT finetuned on NYUv2
+(NYUv2 model is more capable of indoor scenes, and midas model is for general purpose)
 
-The memory usage requires 21G (stereo + 0, -1, 1 temporal) and needs about 30 min to train on a RTX 3090 GPU.
-
-Changing different expert network: See execute_func.py L59. Switch to different version of DPTDepthModel. The default now uses DPT finetuned on NYUv2 (NYUv2 model is more capable of indoor scenes, and midas model is for general purpose)
-
-If you would like to use more frames, you'll need to leave more buffer frames in the data list file. See below notes for details.
+If you would like to use more frames, you'll need to leave more buffer frames in the data list file.
+See below notes for details.
 
 
 **Notes for training on your own dataset:**
@@ -214,24 +210,6 @@ Change train_filenames (dummy) and val_filenames in execute_func.py to NYUv2. Th
 ```shell
 python execute.py --exe eval_measure --log_dir='./tmp' --data_path NYUv2 --dataset NYUv2  --batch_size 1 --load_weights_folder <path to weights> --models_to_load encoder depth  --width 256 --height 256 --max_depth 12 --frame_ids 0 --num_layers 152
 ```
-
-## <div align="">Depth-aware AR effects</div>
-
-To reproduce the object dragging with depth map, we provide some data under AR_effects/ and a snippet 'AR_simple.py'
-
-```shell
-python AR_simple.py
-```
-
-It will generate inserted images along a preset trajectory. Use ffmpeg or other video command to compile the images to video.
-
-Virtual object insertion:
-
-<img src='fig/AR-eff.png'>
-
-Dragging objects along a trajectory:
-
-<img src='fig/move.gif'>
 
 ## <div align="">Citation</div>
 
