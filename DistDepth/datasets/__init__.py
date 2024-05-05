@@ -8,3 +8,4 @@ from .VAdataset import VADataset
 from .SimSINdataset import SimSINDataset
 from .NYUv2dataset import NYUv2Dataset
 from .UniSINdataset import UniSINDataset
+from .peringdataset import peringDataset
