@@ -103,15 +103,16 @@ The below command trains networks by using current and past/future one frame:
 ```shell
 python3 execute.py \
    --exe train \
-   --model_name distdepth-distilled \
+   --model_name experiment_name \
    --frame_ids 0 -1 1 \
    --log_dir='./tmp' \
-   --data_path /dataset/replica-sample \
-   --dataset SimSIN  \
+   --data_path /dataset \
+   --dataset pering  \
    --batch_size 4 \
    --width 256 \
    --height 256 \
-   --max_depth 10.0  \
+   --max_depth 10.0 \
+   --min_depth 0.001 \
    --num_epochs 10 \
    --scheduler_step_size 8 \
    --learning_rate 0.0001 \

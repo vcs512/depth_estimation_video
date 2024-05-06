@@ -112,7 +112,8 @@ class Trainer:
                          "SimSIN": datasets.SimSINDataset,
                          "VA": datasets.VADataset,
                          "NYUv2": datasets.NYUv2Dataset,
-                         "UniSIN": datasets.UniSINDataset,}
+                         "UniSIN": datasets.UniSINDataset,
+                         "pering": datasets.peringDataset}
         self.dataset = datasets_dict[self.opt.dataset]
 
         #self.approx_factor = 1.0
@@ -134,6 +135,9 @@ class Trainer:
         elif self.opt.dataset == 'SimSIN':
             train_filenames = readlines(fpath.format("replica_train"))
             val_filenames = readlines(fpath.format("replica_test_sub"))
+        elif self.opt.dataset == 'pering':
+            train_filenames = readlines(fpath.format("train_files"))
+            val_filenames = readlines(fpath.format("val_files"))
         else:
             raise NotImplementedError("Please define your training and validation file path")
         # define train/val file list for SimSIN or UniSIN in the under. DOWNLOAD the data in the project page

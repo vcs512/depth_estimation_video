@@ -46,7 +46,7 @@ class DistDepthOptions:
                                  type=str,
                                  help="dataset option",
                                  default="SimSIN",
-                                 choices=["VA", "SimSIN", "UniSIN", "NYUv2"])
+                                 choices=["VA", "SimSIN", "UniSIN", "NYUv2", "pering"])
         self.parser.add_argument("--height",
                                  type=int,
                                  help="input image height",
