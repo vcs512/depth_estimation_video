@@ -20,3 +20,4 @@ RUN pip3 install h5py==3.11.0
 RUN pip3 install scikit-image==0.21.0
 RUN pip3 install timm==0.9.16
 
+WORKDIR /app

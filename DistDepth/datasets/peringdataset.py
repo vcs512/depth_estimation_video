@@ -43,7 +43,7 @@ class peringDataset(peringBase):
         depth_gt = cv2.imread(filename=path, flags=cv2.IMREAD_UNCHANGED)
         depth_gt = cv2.resize(
             src=depth_gt,
-            dsize=(2 * self.width, 2 * self.height),
+            dsize=(self.width, self.height),
             interpolation=cv2.INTER_LANCZOS4
         )
         depth_gt = np.array(depth_gt, dtype=np.float32)

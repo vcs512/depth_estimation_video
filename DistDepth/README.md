@@ -120,6 +120,8 @@ python3 execute.py \
    --num_layers 34 \
    --log_frequency 6 \
    --num_workers 0 \
+   --load_weights_folder ./weights/nyuv2/r152_nyuv2/ \
+   --models_to_load "encoder" "depth" \
    [--no_cuda]
 ```
 
