@@ -429,17 +429,25 @@ class Trainer:
         so is only used to give an indication of validation performance
         """
         depth_pred = outputs[("depth", 0, 0)]
-        depth_pred = torch.clamp(F.interpolate(
-            depth_pred, [512, 512], mode="bilinear", align_corners=False), 1e-3, 10)
+        depth_pred = torch.clamp(
+            F.interpolate(
+                depth_pred,
+                [self.opt.width, self.opt.height],
+                mode="bilinear",
+                align_corners=False
+                ),
+            self.opt.min_depth,
+            self.opt.max_depth
+        )
         depth_pred = depth_pred.detach()
 
         depth_gt = inputs["depth_gt"]
-        mask = torch.logical_and(depth_gt>0.01, depth_gt<=10.0)
+        mask = torch.logical_and(depth_gt > self.opt.min_depth, depth_gt <= self.opt.max_depth)
 
         depth_gt = depth_gt[mask]
         depth_pred = depth_pred[mask]
         depth_pred *= torch.median(depth_gt) / torch.median(depth_pred)
-        depth_pred = torch.clamp(depth_pred, min=1e-3, max=10)
+        depth_pred = torch.clamp(depth_pred, min=self.opt.min_depth, max=self.opt.max_depth)
         depth_errors = compute_depth_errors(depth_gt, depth_pred)
 
         for i, metric in enumerate(self.depth_metric_names):
